@@ -1,70 +1,75 @@
-# Getting Started with Create React App
+# MixTex-JS
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+MixTex-JS 是一个基于 Electron 和 React 开发的跨平台 LaTeX 公式识别工具。原 [MixTeX-Latex-OCR](https://github.com/RQLuo/MixTeX-Latex-OCR)使用 tkinter 构建 UI，并通过 PyInstaller 打包，界面较为简易。MixTex-JS 的开发主要出于优化其界面设计考虑，推理性能方面未与原版进行系统比较（但可以确定的是，目前 Windows 端的 Transformers 库不支持 GPU 加速）。
 
-## Available Scripts
+## ✨ 特性
 
-In the project directory, you can run:
+- 🚀 基于 Electron 构建，提供原生应用体验
+<!-- - 🎯 支持快捷键触发截图识别 -->
+- 📝 内置 LaTeX 公式预览
+- 💾 本地保存识别历史
+- 🔍 支持历史记录搜索
+- 🎨 现代化界面设计
+<!-- - 🌈 支持自定义主题
+- 📊 支持调试视图
+- 🔄 支持快速重试识别 -->
+- 📋 一键复制 LaTeX 代码
 
-### `npm start`
+## 🛠️ 技术栈
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Electron
+- React
+- TypeScript
+- ONNX Runtime
+- Hugging Face Transformers
+- Material-UI
+- Styled Components
+- Framer Motion
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 安装
 
-### `npm test`
+<!-- ### 从发布版本安装
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. 访问 [Releases](https://github.com/yourusername/mixtex-js/releases) 页面
+2. 下载适用于您操作系统的安装包
+3. 运行安装程序 -->
 
-### `npm run build`
+### 从源码构建
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+确保您的系统已安装 Node.js (>= 16.0.0) 和 Yarn。
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+# 克隆仓库
+git clone https://github.com/yourusername/mixtex-js.git
+cd mixtex-js
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# 安装依赖
+yarn install
 
-### `npm run eject`
+# 启动开发服务器
+yarn dev
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# 构建应用
+yarn build
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+<!-- ## 🚀 使用方法
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. 启动应用后，它会在系统托盘中运行
+2. 使用快捷键（默认为 `Ctrl+Shift+X`）或点击托盘图标来启动截图
+3. 选择包含数学公式的区域
+4. 等待识别完成，结果会自动显示在主窗口中
+5. 点击复制按钮即可获取 LaTeX 代码 -->
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 🔄 与 Python 版本的区别
 
-## Learn More
+相比原版 MixTex，JS 版本有以下改进：
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- 更现代化的用户界面
+- 更好的系统集成体验
+- 更强大的历史记录管理
+- 更方便的快捷操作
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📄 许可证
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+[MIT License](LICENSE)
