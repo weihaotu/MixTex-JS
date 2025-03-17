@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>截图</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: transparent;
+            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            cursor: crosshair;
+        }
+
+        #selection {
+            position: absolute;
+            border: 2px solid #2196f3;
+            background: rgba(33, 150, 243, 0.1);
+            display: none;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.3);
+        }
+
+        #selection::before,
+        #selection::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        #selection::before {
+            top: -1px;
+            left: -1px;
+        }
+
+        #selection::after {
+            bottom: -1px;
+            right: -1px;
+        }
+
+        .selection-corner {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #2196f3;
+            border: 1px solid #fff;
+        }
+
+        .corner-nw {
+            top: -4px;
+            left: -4px;
+            cursor: nw-resize;
+        }
+
+        .corner-ne {
+            top: -4px;
+            right: -4px;
+            cursor: ne-resize;
+        }
+
+        .corner-sw {
+            bottom: -4px;
+            left: -4px;
+            cursor: sw-resize;
+        }
+
+        .corner-se {
+            bottom: -4px;
+            right: -4px;
+            cursor: se-resize;
+        }
+
+        #size-info {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+        }
+
+        #magnifier {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid #2196f3;
+            overflow: hidden;
+            display: none;
+            pointer-events: none;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #magnifier-content {
+            position: absolute;
+            transform-origin: center;
+            image-rendering: pixelated;
+        }
+
+        #toolbar {
+            position: fixed;
+            display: none;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .button-primary {
+            background: #2196f3;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #1976d2;
+        }
+
+        .button-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .button-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .button svg {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="overlay"></div>
+    <div id="selection">
+        <div class="selection-corner corner-nw"></div>
+        <div class="selection-corner corner-ne"></div>
+        <div class="selection-corner corner-sw"></div>
+        <div class="selection-corner corner-se"></div>
+    </div>
+    <div id="size-info"></div>
+    <div id="magnifier">
+        <canvas id="magnifier-content"></canvas>
+    </div>
+    <div id="toolbar">
+        <button class="button button-primary" id="confirm">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
+            </svg>
+            确认
+        </button>
+        <button class="button button-secondary" id="cancel">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+            取消
+        </button>
+    </div>
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        let isDrawing = false;
+        let startX = 0;
+        let startY = 0;
+        let selectionRect = { x: 0, y: 0, width: 0, height: 0 };
+
+        const overlay = document.getElementById('overlay');
+        const selection = document.getElementById('selection');
+        const toolbar = document.getElementById('toolbar');
+        const sizeInfo = document.getElementById('size-info');
+        const magnifier = document.getElementById('magnifier');
+        const magnifierContent = document.getElementById('magnifier-content');
+        const confirmButton = document.getElementById('confirm');
+        const cancelButton = document.getElementById('cancel');
+
+        // 初始化放大镜
+        const magnifierCtx = magnifierContent.getContext('2d');
+        const magnifierZoom = 2;
+        magnifierContent.width = 120;
+        magnifierContent.height = 120;
+
+        // 更新选区大小信息
+        function updateSizeInfo(rect) {
+            sizeInfo.textContent = `${Math.round(rect.width)} × ${Math.round(rect.height)}`;
+            sizeInfo.style.display = 'block';
+
+            const sizeInfoRect = sizeInfo.getBoundingClientRect();
+            const top = rect.y - sizeInfoRect.height - 8;
+            const left = rect.x + (rect.width - sizeInfoRect.width) / 2;
+
+            sizeInfo.style.left = `${left}px`;
+            sizeInfo.style.top = `${top}px`;
+        }
+
+        // 更新放大镜
+        function updateMagnifier(e) {
+            const x = e.clientX;
+            const y = e.clientY;
+
+            magnifier.style.left = `${x - 60}px`;
+            magnifier.style.top = `${y - 60}px`;
+
+            // 在放大镜中绘制放大的内容
+            magnifierCtx.clearRect(0, 0, 120, 120);
+            magnifierCtx.drawImage(
+                document.documentElement,
+                x - 30, y - 30, 60, 60,
+                0, 0, 120, 120
+            );
+        }
+
+        overlay.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            selection.style.left = startX + 'px';
+            selection.style.top = startY + 'px';
+            selection.style.width = '0';
+            selection.style.height = '0';
+            selection.style.display = 'block';
+            toolbar.style.display = 'none';
+            magnifier.style.display = 'block';
+        });
+
+        overlay.addEventListener('mousemove', (e) => {
+            updateMagnifier(e);
+
+            if (!isDrawing) return;
+
+            const width = e.clientX - startX;
+            const height = e.clientY - startY;
+
+            selection.style.width = Math.abs(width) + 'px';
+            selection.style.height = Math.abs(height) + 'px';
+            selection.style.left = (width < 0 ? e.clientX : startX) + 'px';
+            selection.style.top = (height < 0 ? e.clientY : startY) + 'px';
+
+            selectionRect = {
+                x: parseInt(selection.style.left),
+                y: parseInt(selection.style.top),
+                width: parseInt(selection.style.width),
+                height: parseInt(selection.style.height)
+            };
+
+            updateSizeInfo(selectionRect);
+        });
+
+        overlay.addEventListener('mouseup', (e) => {
+            if (!isDrawing) return;
+            isDrawing = false;
+            magnifier.style.display = 'none';
+
+            if (selectionRect.width > 0 && selectionRect.height > 0) {
+                toolbar.style.display = 'flex';
+
+                // 计算工具栏位置
+                const toolbarRect = toolbar.getBoundingClientRect();
+                let left = e.clientX;
+                let top = e.clientY + 10;
+
+                // 确保工具栏不会超出屏幕
+                if (left + toolbarRect.width > window.innerWidth) {
+                    left = window.innerWidth - toolbarRect.width - 10;
+                }
+                if (top + toolbarRect.height > window.innerHeight) {
+                    top = e.clientY - toolbarRect.height - 10;
+                }
+
+                toolbar.style.left = left + 'px';
+                toolbar.style.top = top + 'px';
+            }
+        });
+
+        confirmButton.addEventListener('click', () => {
+            ipcRenderer.send('screenshot:confirm', selectionRect);
+        });
+
+        cancelButton.addEventListener('click', () => {
+            ipcRenderer.send('screenshot:cancel');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                ipcRenderer.send('screenshot:cancel');
+            }
+        });
+
+        // 防止右键菜单
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+
+</html>

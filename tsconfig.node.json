@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "skipLibCheck": true,
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "allowSyntheticDefaultImports": true,
+        "target": "ES2015"
+    },
+    "include": [
+        "vite.config.ts",
+        "electron.vite.config.ts",
+        "src/main/**/*.ts",
+        "src/preload/**/*.ts",
+        "src/ocr/**/*.ts",
+        "src/shared/**/*.ts"
+    ]
+}
