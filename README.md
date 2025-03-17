@@ -40,7 +40,7 @@ MixTex-JS 是一个基于 Electron 和 React 开发的跨平台 LaTeX 公式识�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/mixtex-js.git
+git clone https://github.com/weihaotu/mixtex-js.git
 cd mixtex-js
 
 # 安装依赖
